@@ -4,14 +4,34 @@ Run:  uvicorn app.main:app --reload --port 8084
   or: python -m app.main
 """
 import os
+from contextlib import asynccontextmanager
 
+import py_eureka_client.eureka_client as eureka_client
 from fastapi import FastAPI
 
 from app.routers import notification
 
 PORT = int(os.getenv("PORT", "8084"))
+EUREKA_SERVER = os.getenv("EUREKA_SERVER", "http://localhost:8761/eureka")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Demarrage : enregistrement dans Eureka (apparait comme NOTIFICATION)
+    await eureka_client.init_async(
+        eureka_server=EUREKA_SERVER,
+        app_name="notification",
+        instance_host="localhost",
+        instance_ip="127.0.0.1",
+        instance_port=PORT,
+    )
+    yield
+    # Arret : desinscription d'Eureka
+    await eureka_client.stop_async()
+
 
 app = FastAPI(
+    lifespan=lifespan,
     title="Notification Microservice API",
     version="1.0.0",
     description=(
