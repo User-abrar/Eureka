@@ -19,8 +19,8 @@ const eurekaClient = new Eureka({
     ipAddr: '127.0.0.1',
     port: { $: PORT, '@enabled': true },
     vipAddress: 'meeting',
-    statusPageUrl: `http://localhost:${PORT}/swagger-ui`,
-    healthCheckUrl: `http://localhost:${PORT}/api/meetings/hello`,
+    statusPageUrl: `http://localhost:${PORT}/info`,
+    healthCheckUrl: `http://localhost:${PORT}/health`,
     homePageUrl: `http://localhost:${PORT}/`,
     dataCenterInfo: {
       '@class': 'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',

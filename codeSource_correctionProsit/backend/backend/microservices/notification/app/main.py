@@ -24,6 +24,8 @@ async def lifespan(app: FastAPI):
         instance_host="localhost",
         instance_ip="127.0.0.1",
         instance_port=PORT,
+        health_check_url=f"http://localhost:{PORT}/health",
+        status_page_url=f"http://localhost:{PORT}/info",
     )
     yield
     # Arret : desinscription d'Eureka
@@ -48,10 +50,16 @@ app = FastAPI(
 
 app.include_router(notification.router)
 
-# TODO (students): if you add other routers, include them here.
+
+# ---- Sante et info (pour Eureka) ----
+@app.get("/health", tags=["Actuator"])
+def health():
+    return {"status": "UP"}
 
 
-if __name__ == "__main__":
-    import uvicorn
+@app.get("/info", tags=["Actuator"])
+def info():
+    return {"name": "notification", "version": "1.0.0"}
 
-    uvicorn.run("app.main:app", host="0.0.0.0", port=PORT, reload=True)
+
+# TODO (students): if you add other routers, include them

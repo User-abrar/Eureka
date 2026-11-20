@@ -7,6 +7,12 @@ const app = express();
 
 app.use(express.json());
 
+const pkg = require('../package.json');
+
+// ---- Santé et info (pour Eureka) ----
+app.get('/health', (req, res) => res.status(200).json({ status: 'UP' }));
+app.get('/info', (req, res) => res.json({ name: pkg.name, version: pkg.version }));
+
 // ---- Swagger documentation ----
 app.get('/v3/api-docs', (req, res) => res.json(openapiSpec));
 app.use('/swagger-ui', swaggerUi.serve, swaggerUi.setup(openapiSpec));
