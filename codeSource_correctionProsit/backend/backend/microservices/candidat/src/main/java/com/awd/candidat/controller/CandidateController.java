@@ -2,7 +2,9 @@ package com.awd.candidat.controller;
 
 import com.awd.candidat.dto.CandidateRequest;
 import com.awd.candidat.dto.CandidateResponse;
+import com.awd.candidat.dto.JobDTO;
 import com.awd.candidat.service.CandidateService;
+import feign.FeignException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -10,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -104,4 +107,31 @@ public class CandidateController {
     public CandidateResponse removeAddress(@Parameter(description = "Candidate id", example = "1") @PathVariable Long id) {
         return candidateService.removeAddress(id);
     }
-}
+    @GetMapping("/jobs")
+    public List<JobDTO> getAllJobs() {
+        return candidateService.getJobs();
+    }
+    @GetMapping("/jobs/{id}")
+    public JobDTO getJobById(@PathVariable("id") Long id) {
+        return candidateService.getJobById(id);
+    }
+
+    @GetMapping("/{id}/favorite-jobs")
+    public List<JobDTO> getFavoriteJobs(@PathVariable("id") Long id) {
+        return candidateService.getFavoriteJobs(id);
+    }
+    @PostMapping("/{id}/favorite-jobs/{jobId}")
+    public ResponseEntity<String> saveFavoriteJob(
+            @PathVariable("id") Long id,
+            @PathVariable("jobId") Long jobId) {
+        try {
+            candidateService.getJobById(jobId);
+        } catch (FeignException.NotFound ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Job not found with ID: " + jobId);
+        }
+        candidateService.saveFavoriteJob(id, jobId);
+        return ResponseEntity.ok("Job saved as favorite successfully.");
+    }
+
+    }

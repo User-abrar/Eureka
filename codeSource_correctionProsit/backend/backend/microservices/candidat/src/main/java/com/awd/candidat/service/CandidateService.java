@@ -2,16 +2,22 @@ package com.awd.candidat.service;
 
 import com.awd.candidat.dto.CandidateRequest;
 import com.awd.candidat.dto.CandidateResponse;
+import com.awd.candidat.dto.JobDTO;
 import com.awd.candidat.entity.Address;
 import com.awd.candidat.entity.Candidate;
 import com.awd.candidat.exception.ConflictException;
 import com.awd.candidat.exception.ResourceNotFoundException;
 import com.awd.candidat.mapper.CandidatMapper;
 import com.awd.candidat.repository.CandidateRepository;
+import com.awd.candidat.repository.JobClient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -24,6 +30,15 @@ public class CandidateService {
         this.candidateRepository = candidateRepository;
         this.addressService = addressService;
     }
+    @Autowired
+    private JobClient jobServiceClient;
+    public List<JobDTO> getJobs() {
+        return jobServiceClient.findAll();
+    }
+    public JobDTO getJobById(Long id) {
+        return jobServiceClient.findById(id);
+    }
+
 
     @Transactional(readOnly = true)
     public List<CandidateResponse> findAll() {
@@ -90,5 +105,23 @@ public class CandidateService {
     private Candidate getCandidate(Long id) {
         return candidateRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Candidate", id));
+    }
+
+    @Transactional(readOnly = true)
+    public List<JobDTO> getFavoriteJobs(Long candidateId) {
+        Candidate candidate = candidateRepository.findById(candidateId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Candidate not found"));
+        return candidate.getFavoriteJobs().stream()
+                .map(jobServiceClient::findById)
+                .collect(Collectors.toList());
+    }
+    @Transactional
+    public void saveFavoriteJob(Long candidateId, Long jobId) {
+        Candidate candidate = candidateRepository.findById(candidateId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Candidate not found"));
+        candidate.getFavoriteJobs().add(jobId);
+        candidateRepository.save(candidate);
     }
 }

@@ -2,6 +2,9 @@ package com.awd.candidat.entity;
 
 import jakarta.persistence.*;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(name = "candidate")
 public class Candidate {
@@ -61,4 +64,11 @@ public class Candidate {
     public void setEmail(String email) { this.email = email; }
 
     public Address getAddress() { return address; }
+    @ElementCollection
+    private Set<Long> favoriteJobs = new HashSet<>();
+// Ajouter les getters et setters (voir page suivante).
+public Set<Long> getFavoriteJobs() { return favoriteJobs; }
+    public void setFavoriteJobs(Set<Long> favoriteJobs) {
+        this.favoriteJobs = favoriteJobs;
+    }
 }
